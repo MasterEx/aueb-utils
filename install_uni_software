@@ -1,0 +1,74 @@
+#!/bin/bash
+
+ #
+ # ----------------------------------------------------------------------------
+ # "THE BEER-WARE LICENSE" (Revision 42):
+ # <pntanasis@gmail.com> wrote this file. As long as you retain this notice you
+ # can do whatever you want with this stuff. If we meet some day, and you think
+ # this stuff is worth it, you can buy me a beer in return Periklis Ntanasis
+ # ----------------------------------------------------------------------------
+ #
+
+# This is a bash script for automating the installation of the programs
+# that we need for our university projects.
+
+# Programs - FROM PACKAGE MANAGER
+
+ubuntu="ubuntu"
+#ubuntu
+if [ $1 = $ubuntu ]; then
+PKGMNGR="apt"
+JAVA=" openjdk-6-jdk openjdk-6-jre"
+NETBEANS="netbeans"
+SCILAB="scilab"
+GEANY="geany"
+NMAP="nmap"
+BUILD="build-essential"
+CSH="csh"
+SPIM="spim"
+fi
+
+arch="arch"
+#archLinux
+if [ $1 = $arch ]; then
+PKGMNGR="pacman"
+JAVA="openjdk6"
+NETBEANS="netbeans"
+SCILAB="scilab"
+GEANY="geany"
+NMAP="nmap"
+BUILD="base-devel"
+CSH="tcsh"
+fi
+
+# Programs - FROM SCRATCH
+
+SPIMurl="http://www.cs.wisc.edu/~larus/SPIM/spim.tar.gz"
+# register to download Quartus
+QUARTUSurl="https://www.altera.com/servlets/download3?swcode=WWW-SWD-QII-WE-100SP1-LNX&l=en"
+LAMPPurl="http://www.apachefriends.org/download.php?xampp-linux-1.7.3a.tar.gz"
+OMNETurl="http://www.omnetpp.org/omnetpp/doc_download/2217-omnet-41-source--ide-tgz"
+# ACCEPT THE AGREEMENT
+NESSUSurl="http://www.nessus.org/download/index.php?product=nessus42-linux"
+
+pkg=$BUILD" "$JAVA" "$NETBEANS" "$SCILAB" "$GEANY" "$NMAP" "$CSH" "$SPIM
+
+# apt
+apt="apt"
+if [ $PKGMNGR = $apt ]; then
+	apt-get update
+	apt-get install $pkg
+
+# The downloads/compilation part!
+cd /tmp
+
+# LAMPP installation
+wget $LAMPPurl
+tar xvfz xampp-linux-1.7.3a.tar.gz -C /opt
+
+# OMNET++ installation
+wget $OMNETurl
+tar xvfz 2217-omnet-41-source--ide-tgz -C /opt
+echo "export PATH=/opt/omnetpp-4.1/bin">>/etc/bash.bashrc
+/opt/omnetpp-4.1/configure
+make MODE=release
