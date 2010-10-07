@@ -1,0 +1,5 @@
+linux4aueb
+----------
+This script will be used to install the required software that we need for our university projects(A.U.E.B.) to a linux distro.
+
+The installed software may not be free or opensource!
