@@ -51,13 +51,15 @@ OMNETurl="http://www.omnetpp.org/omnetpp/doc_download/2217-omnet-41-source--ide-
 # ACCEPT THE AGREEMENT
 NESSUSurl="http://www.nessus.org/download/index.php?product=nessus42-linux"
 
-pkg=$BUILD" "$JAVA" "$NETBEANS" "$SCILAB" "$GEANY" "$NMAP" "$CSH" "$SPIM
-
 # apt
 apt="apt"
 if [ $PKGMNGR = $apt ]; then
+	pkg=$BUILD" "$JAVA" "$NETBEANS" "$SCILAB" "$GEANY" "$NMAP" "$CSH" "$SPIM
 	apt-get update
 	apt-get install $pkg
+fi
+
+# pacman
 
 # The downloads/compilation part!
 cd /tmp
@@ -72,3 +74,12 @@ tar xvfz 2217-omnet-41-source--ide-tgz -C /opt
 echo "export PATH=/opt/omnetpp-4.1/bin">>/etc/bash.bashrc
 /opt/omnetpp-4.1/configure
 make MODE=release
+
+if [ $1 = $arch ]; then
+
+	# SPIM installation
+
+	wget $SPIMurl
+	tar xvfz spim.tar.gz
+	spim-8.0/spim/make install
+fi
