@@ -5,7 +5,7 @@
 # Periklis Ntanasis <pntanasis@gmail.com> and Ivan c00kiemon5ter Kanakarakis 
 # <ivan.kanak@gmail.com> wrote this file. As long as you retain this notice you
 # can do whatever you want with this stuff. If we meet some day, and you think
-# this stuff is worth it, you can buy me a beer in return Periklis Ntanasis
+# this stuff is worth it, you can buy us a beer in return!
 # ----------------------------------------------------------------------------
 #
 # This is a bash script managing all needed things 
@@ -59,8 +59,8 @@ cat << EOF
 usage: $(basename $0) [option [suboption]]
 
 	Options are:
-	apps [app_opts]		application management
-	wifi [wifi_opts]	wifi connection management
+	apps [app_opts]			application management
+	wifi [wifi_opts]		wifi connection management
 	
 	Application options are:
 	install				install all applications
