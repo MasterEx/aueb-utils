@@ -28,7 +28,7 @@ LOG="${PREFIX}/aueb.log"
 BUILD_DIR="${PREFIX}/aueb_pkg_src"
 BUILD_FLAGS="--prefix=/usr LDFLAGS=\"-Wl,--no-as-needed\""
 
-# wigi log files
+# wifi log files
 WPAERR="${PREFIX}/wpa_aueb.err"
 WPALOG="${PREFIX}/wpa_aueb.log"
 WPACONF="/etc/wpa_supplicant/wpa_aueb.conf"
@@ -88,7 +88,7 @@ exit 1
 function extract() {
 	if [ -f "$1" ] ; then
 		case "$1" in
-			*.tar.bz2)   tar xvjf ""$1""    ;;
+			*.tar.bz2)   tar xvjf "$1"    ;;
 			*.tar.gz)    tar xvzf "$1"    ;;
 			*.bz2)       bunzip2 "$1"     ;;
 			*.rar)       unrar x "$1"     ;;
@@ -120,7 +120,7 @@ function buildpkgs() {
 	cleanbuild
 }
 
-# Install  packages using PMS
+# Install packages using PMS
 function installpkgs() {
 	${PMSI["$DISTRO"]} ${APPS["common"]} ${APPS["$DISTRO"]}
 	(( $? )) && echo Failure || echo Success
@@ -198,12 +198,13 @@ EOF
 
 # manage wifi connection
 function wifi() {
+	IFACE="$(iwconfig 2>&1 | grep -v "no\|^$" | head -1 | awk '{ print $1 }')"
+	[ -z "$IFACE" ] && echo "No wireless interface found" && exit 1
 	case "$1" in
 		connect)	connectwifi		;;
 		disconnect)	disconnectwifii	;;
 		*)			usage			;;
 	esac
-	IFACE="$(iwconfig 2>&1 | grep -v "no\|^$" | head -1 | awk '{ print $1 }')"
 }
 # }}}  
 
