@@ -136,7 +136,7 @@ function apps() {
 # wifi management {{{
 # connect to wifi
 function connectwifi() {
-	echo cookies
+	wpa_wifi
 	/etc/{rc,init}.d/{networkmanager,wicd} stop &>/dev/null
 	ifconfig $IFACE down
 	ifconfig $IFACE up
@@ -145,12 +145,12 @@ function connectwifi() {
 
 # disconnect from wifi
 function disconnectwifi() {
-	echo cookies
 	ifconfig $IFACE down
 	/etc/{rc,init}.d/{networkmanager,wicd} start &>/dev/null
+	rm $WPACONF
 }
 
-# creates wifi connection - wpa_supplicant is needed
+# create wpa_supplicant configuration file
 function wpa_wifi() {
 cat > ${WPACONF} << EOF
 ctrl_interface=/tmp/wpa_aueb
