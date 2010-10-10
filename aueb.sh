@@ -31,18 +31,18 @@ BUILD_FLAGS="--prefix=/usr LDFLAGS=\"-Wl,--no-as-needed\""
 # Log files
 WPAERR="/tmp/wpa_aueb.err"
 WPALOG="/tmp/wpa_aueb.log"
-WPACONF="/tmp/wpa_aueb.conf"
+WPACONF="/etc/wpa_supplicant/wpa_aueb.conf"
 
-## Package Managers
+# Package Managers
 PMS=(	[ubuntu]="apt-get install"
 		[arch]="pacman -S" )
 
-## Applications throught the PMS
+# Applications throught the PMS
 APPS=(	[common]="netbeans scilab geany nmap spim tcsh wireshark"
 		[ubuntu]="openjdk-6-jdk build-essential"
 		[arch]="openjdk6 base-devel" )
 
-# }}}
+ # }}}
 
 # FIXME Applications that need to be built from source {{{
 LAMPP="http://www.apachefriends.org/download.php?xampp-linux-1.7.3a.tar.gz"
@@ -147,12 +147,13 @@ function connectwifi() {
 function disconnectwifi() {
 	ifconfig $IFACE down
 	/etc/{rc,init}.d/{networkmanager,wicd} start &>/dev/null
-	rm $WPACONF
 }
 
 # create wpa_supplicant configuration file
 function wpa_wifi() {
-cat > ${WPACONF} << EOF
+	[[ -e $WPACONF ]] && return
+	mkdir -p $(dirname ${WPACONF})
+	cat > $WPACONF << EOF
 ctrl_interface=/tmp/wpa_aueb
 eapol_version=1
 ap_scan=1
