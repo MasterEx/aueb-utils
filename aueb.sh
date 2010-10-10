@@ -38,7 +38,7 @@ PMS=(	[ubuntu]="apt-get install"
 		[arch]="pacman -S" )
 
 ## Applications throught the PMS
-APPS=(	[common]="netbeans scilab geany nmap spim tcsh"
+APPS=(	[common]="netbeans scilab geany nmap spim tcsh wireshark"
 		[ubuntu]="openjdk-6-jdk build-essential"
 		[arch]="openjdk6 base-devel" )
 
