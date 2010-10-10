@@ -22,7 +22,7 @@
 # print status mesg
 # how to find out distro ? <-- argument
 # how know PMS install/remove arg ? <-- switch
-# wifi stuff | wpa_supplicant 
+# wifi stuff | wpa_supplicant - find the current wifi interface
 # log errors
 # profit!
 
@@ -142,6 +142,21 @@ function connectwifi() {
 # disconnect from wifi
 function disconnectwifi() {
 	echo cookies
+}
+
+# creates wifi connection - wpa_supplicant is needed
+function createwificonnection() {
+	echo "network={
+      ssid=\"AUEB-Wireless\"
+      key_mgmt=WPA-EAP
+      pairwise=CCMP TKIP
+      eap=PEAP
+      phase2=\"auth=MSCHAPV2\"
+      identity=\"aueb\"
+      password=\"wireless\"
+}">/etc/wpa_supplicant/aueb.conf
+ifconfig wlan0 up
+wpa_supplicant -D wext -i wlan0 -c /etc/wpa_supplicant/aueb.conf &
 }
 
 # manage wifi connection
