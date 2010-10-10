@@ -17,21 +17,21 @@
 # }}}
 
 # TODO
-# check needed progs (eg extract)
-# build pkgs func 
-# print status mesg
-# how to find out distro ? <-- argument
-# how know PMS install/remove arg ? <-- switch
-# wifi stuff | wpa_supplicant - find the current wifi interface
-# log errors
+# check needed progs (eg extract) at each stage
+# build pkgs func
+# print status mesg and keep log
+# dstro arg
+# PMS install/remove arg
 # profit!
 
-# Environment vars {{{
+ # Environment vars {{{
 BUILD_DIR="/tmp/src/"
 BUILD_FLAGS="--prefix=/usr LDFLAGS=\"-Wl,--no-as-needed\""
 
-## FIXME ?! Install / RM vars 
-RM=0
+# Log files
+WPAERR="/tmp/wpa_aueb.err"
+WPALOG="/tmp/wpa_aueb.log"
+WPACONF="/tmp/wpa_aueb.conf"
 
 ## Package Managers
 PMS=(	[ubuntu]="apt-get install"
@@ -137,26 +137,36 @@ function apps() {
 # connect to wifi
 function connectwifi() {
 	echo cookies
+	/etc/{rc,init}.d/{networkmanager,wicd} stop &>/dev/null
+	ifconfig $IFACE down
+	ifconfig $IFACE up
+	wpa_supplicant -Dwext -i$IFACE -c $WPACONF 1>$WPALOG 2>$WPAERR
 }
 
 # disconnect from wifi
 function disconnectwifi() {
 	echo cookies
+	ifconfig $IFACE down
+	/etc/{rc,init}.d/{networkmanager,wicd} start &>/dev/null
 }
 
 # creates wifi connection - wpa_supplicant is needed
-function createwificonnection() {
-	echo "network={
-      ssid=\"AUEB-Wireless\"
+function wpa_wifi() {
+cat > ${WPACONF} << EOF
+ctrl_interface=/tmp/wpa_aueb
+eapol_version=1
+ap_scan=1
+fast_reauth=1
+network={
+      ssid="AUEB-Wireless"
       key_mgmt=WPA-EAP
       pairwise=CCMP TKIP
       eap=PEAP
-      phase2=\"auth=MSCHAPV2\"
-      identity=\"aueb\"
-      password=\"wireless\"
-}">/etc/wpa_supplicant/aueb.conf
-ifconfig wlan0 up
-wpa_supplicant -D wext -i wlan0 -c /etc/wpa_supplicant/aueb.conf &
+      phase2="auth=MSCHAPV2"
+      identity="aueb"
+      password="wireless"
+}
+EOF
 }
 
 # manage wifi connection
@@ -166,6 +176,7 @@ function wifi() {
 		disconnect)	disconnectwifii	;;
 		*)			usage && exit 1	;;
 	esac
+	IFACE="$(iwconfig 2>&1 | grep -v "no\|^$" | head -1 | awk '{ print $1 }')"
 }
 # }}}  
 
