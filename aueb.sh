@@ -43,8 +43,8 @@ PMSR=(	[ubuntu]="apt-get remove"
 
 # Applications throught the PMS
 declare -A APPS
-APPS=(	[common]="netbeans scilab geany nmap spim tcsh wireshark"
-		[ubuntu]="openjdk-6-jdk build-essential wireless-tools wpasupplicant"
+APPS=(	[common]="netbeans scilab geany nmap tcsh wireshark"
+		[ubuntu]="openjdk-6-jdk build-essential wireless-tools wpasupplicant spim"
 		[arch]="openjdk6 base-devel wireless_tools wpa_supplicant" )
 
 # }}}
@@ -52,8 +52,41 @@ APPS=(	[common]="netbeans scilab geany nmap spim tcsh wireshark"
 # FIXME crete arch-like vars for each package, each
 # FIXME parckege will be a function that resets the vars (url/pkgname/etc)
 # Applications that need to be built from source {{{
+
+# custom pkgbuilds
+function omnet() {
+	pkgname=omnet
+	pkgver=4.1
+	pkgrel=41
+	pkgdesc="OMNeT++ is an extensible, modular, component-based C++ simulation\
+	 library and framework, primarily for building network simulators."
+	arch=('i686' 'x86_64')
+	url="http://www.omnetpp.org/"
+	license=('ACADEMIC PUBLIC LICENSE')
+	groups=('none')
+	depends=('akaroa')
+	source=(http://www.omnetpp.org/omnetpp/doc_download/2217-$pkgname-$pkgver-source--ide-tgz)
+	md5sums=('acc78fbc9f4b6ca921d11fabcec55c44')
+}
+
+function spim() {
+	pkgname=spim
+	pkgver=8.0
+	pkgrel=1
+	pkgdesc="A MIPS32 simulator"
+	arch=('i686' 'x86_64')
+	url="http://pages.cs.wisc.edu/~larus/$pkgname.html"
+	license=('custom:BSD')
+	groups=('emulators')
+	depends=('libxaw')
+	makedepends=('bison' 'flex' 'm4' 'imake')
+	conflicts=(xspim)
+	provides=(xspim)
+	source=(http://www.cs.wisc.edu/~larus/SPIM/${pkgname}-${pkgver}.tar.gz)
+	md5sums=('146558e8256f2b7577fb825fdc76a04f')
+}
+
 #LAMPP="http://www.apachefriends.org/download.php?xampp-linux-1.7.3a.tar.gz"
-#OMNET="http://www.omnetpp.org/omnetpp/doc_download/2217-omnet-41-source--ide-tgz"
 # ACCEPT THE AGREEMENT
 #NESSUS="http://www.nessus.org/download/index.php?product=nessus42-linux"
 # register to download Quartus
