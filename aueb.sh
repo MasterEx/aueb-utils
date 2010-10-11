@@ -33,6 +33,9 @@ WPAERR="${PREFIX}/wpa_aueb.err"
 WPALOG="${PREFIX}/wpa_aueb.log"
 WPACONF="/etc/wpa_supplicant/wpa_aueb.conf"
 
+# 3rd party packages installation destination
+VENDORS_DIR="/opt"
+
 # Package Managers installation/removal of apps
 declare -A PMSI
 PMSI=(	[ubuntu]="apt-get install"
@@ -65,7 +68,7 @@ function omnet() {
 	license=('ACADEMIC PUBLIC LICENSE')
 	groups=('none')
 	depends=('akaroa')
-	source=(http://www.omnetpp.org/omnetpp/doc_download/2217-$pkgname-$pkgver-source--ide-tgz)
+	source=(http://www.omnetpp.org/omnetpp/doc_download/2217-$pkgname-$pkgrel-source--ide-tgz)
 	md5sums=('acc78fbc9f4b6ca921d11fabcec55c44')
 }
 
@@ -82,11 +85,20 @@ function spim() {
 	makedepends=('bison' 'flex' 'm4' 'imake')
 	conflicts=(xspim)
 	provides=(xspim)
-	source=(http://www.cs.wisc.edu/~larus/SPIM/${pkgname}-${pkgver}.tar.gz)
+	source=(http://www.cs.wisc.edu/~larus/SPIM/${pkgname}.tar.gz)
 	md5sums=('146558e8256f2b7577fb825fdc76a04f')
 }
 
-#LAMPP="http://www.apachefriends.org/download.php?xampp-linux-1.7.3a.tar.gz"
+function getlampp() {
+	pkgname=lampp
+	pkgver="1.7.3a"
+	pkgrel="1.7.3a"
+	pkgdesc="The Linux version of XAMPP"
+	arch=('i686' 'x86_64')
+	url="http://www.apachefriends.org/download.php?xampp-linux-1.7.3a.tar.gz"
+	source=(http://www.apachefriends.org/download.php?xampp-linux-${pkgver}.tar.gz)
+}
+
 # ACCEPT THE AGREEMENT
 #NESSUS="http://www.nessus.org/download/index.php?product=nessus42-linux"
 # register to download Quartus
@@ -144,10 +156,15 @@ function cleanbuild() {
 	rm -r $BUILD_DIR/*
 }
 
+# gets and extracts remote archive
+function getarchivedfiles() {
+	wget "$1"
+	extract "$2"	
+}
+
 # FIXME Build a package from source
 function buildpkgs() {
-	wget "$pkg_url"
-	extract "$pkg"
+	getarchivedfiles "$url" "$pkgname"
 	./configure --${CONF_FLAGS}
 	make && make install
 	cleanbuild
@@ -157,6 +174,12 @@ function buildpkgs() {
 function installpkgs() {
 	${PMSI["$DISTRO"]} ${APPS["common"]} ${APPS["$DISTRO"]}
 	(( $? )) && echo Failure || echo Success
+}
+
+# gets required files
+function getfiles() {
+	getarchivedfiles "$url" "$pkgname"
+	mv "$pkgname" $1
 }
 
 # main install function
