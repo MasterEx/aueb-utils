@@ -23,6 +23,8 @@
 # profit!
 
 # Environment vars {{{
+FOSS_AUEB="http://foss.aueb.gr/"	
+
 PREFIX="/tmp/aueb"
 LOG="${PREFIX}/aueb.log"
 BUILD_DIR="${PREFIX}/aueb_pkg_src"
@@ -60,7 +62,7 @@ APPS=(	[common]="netbeans scilab geany nmap tcsh wireshark"
 
 # custom pkgbuilds
 function omnet() {
-	pkgname="omnet"
+	pkgname="omnetpp"
 	pkgver=4.1
 	pkgrel=41
 	pkgdesc="OMNeT++ is an extensible, modular, component-based C++ simulation\
@@ -70,7 +72,7 @@ function omnet() {
 	license=('ACADEMIC PUBLIC LICENSE')
 	groups=('none')
 	depends=('akaroa')
-	source=(http://www.omnetpp.org/omnetpp/doc_download/2217-$pkgname-$pkgrel-source--ide-tgz)
+	source=(${FOSS_AUEB}sources/${pkgname}-${pkgver}-src.tgz)
 	md5sums=('acc78fbc9f4b6ca921d11fabcec55c44')
 }
 
@@ -87,7 +89,7 @@ function spim() {
 	makedepends=('bison' 'flex' 'm4' 'imake')
 	conflicts=(xspim)
 	provides=(xspim)
-	source=(http://www.cs.wisc.edu/~larus/SPIM/${pkgname}.tar.gz)
+	source=(${FOSS_AUEB}sources/${pkgname}.tar.gz)
 	md5sums=('146558e8256f2b7577fb825fdc76a04f')
 }
 
@@ -98,7 +100,8 @@ function xampp() {
 	pkgdesc="The Linux version of XAMPP"
 	arch=('i686' 'x86_64')
 	url="http://www.apachefriends.org/download.php?xampp-linux-1.7.3a.tar.gz"
-	source=(http://www.apachefriends.org/download.php?xampp-linux-${pkgver}.tar.gz)
+	source=(${FOSS_AUEB}sources/${pkgname}-linux-${pkgver}.tar.gz)
+	md5sum=('89c13779cf6f0925d5c1c400d31a1cc3')
 }
 
 # ACCEPT THE AGREEMENT
@@ -160,7 +163,7 @@ function cleanbuild() {
 
 # get and extract remote archive
 function getarchivedfiles() {
-	wget "$url"
+	wget "$source"
 	extract "$pkgname"	
 }
 
