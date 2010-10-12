@@ -48,7 +48,9 @@ PMSR=(	[ubuntu]="apt-get remove"
 declare -A APPS
 APPS=(	[common]="netbeans scilab geany nmap tcsh wireshark"
 		[ubuntu]="openjdk-6-jdk build-essential wireless-tools wpasupplicant spim"
-		[arch]="openjdk6 base-devel wireless_tools wpa_supplicant" )
+		[arch]="openjdk6 base-devel wireless_tools wpa_supplicant" 
+		[build]="omnet spim" 
+		[extra]="xampp" )
 
 # }}}
 
@@ -58,7 +60,7 @@ APPS=(	[common]="netbeans scilab geany nmap tcsh wireshark"
 
 # custom pkgbuilds
 function omnet() {
-	pkgname=omnet
+	pkgname="omnet"
 	pkgver=4.1
 	pkgrel=41
 	pkgdesc="OMNeT++ is an extensible, modular, component-based C++ simulation\
@@ -73,7 +75,7 @@ function omnet() {
 }
 
 function spim() {
-	pkgname=spim
+	pkgname="spim"
 	pkgver=8.0
 	pkgrel=1
 	pkgdesc="A MIPS32 simulator"
@@ -89,8 +91,8 @@ function spim() {
 	md5sums=('146558e8256f2b7577fb825fdc76a04f')
 }
 
-function getlampp() {
-	pkgname=lampp
+function xampp() {
+	pkgname="xampp"
 	pkgver="1.7.3a"
 	pkgrel="1.7.3a"
 	pkgdesc="The Linux version of XAMPP"
@@ -156,18 +158,41 @@ function cleanbuild() {
 	rm -r $BUILD_DIR/*
 }
 
-# gets and extracts remote archive
+# get and extract remote archive
 function getarchivedfiles() {
-	wget "$1"
-	extract "$2"	
+	wget "$url"
+	extract "$pkgname"	
 }
 
-# FIXME Build a package from source
+# get required files FIXME what is $1 , where is this used ?!
+function getfiles() {
+	getarchivedfiles 
+	mv "$pkgname" "$1" 
+}
+
+# Build a package from source
 function buildpkgs() {
-	getarchivedfiles "$url" "$pkgname"
+	getarchivedfiles
 	./configure --${CONF_FLAGS}
 	make && make install
-	cleanbuild
+}
+
+# FIXME Build the packages from source
+function buildpkgs() {
+	[ -e "$BUILD_DIR" ] || mkdir -p "$BUILD_DIR"
+	local curpath="$PWD"
+	cd "$BUILD_DIR"
+	for app in ${APPS["build"]}
+	do
+		$app # FIXME call the app-function :S
+		buildpkg
+		cleanbuild
+	done
+}
+
+# FIXME Install archived-ready packages
+function readypkgs() {
+	echo ${APPS["extra"]}
 }
 
 # Install packages using PMS
@@ -176,20 +201,11 @@ function installpkgs() {
 	(( $? )) && echo Failure || echo Success
 }
 
-# gets required files
-function getfiles() {
-	getarchivedfiles "$url" "$pkgname"
-	mv "$pkgname" $1
-}
-
 # main install function
 function install() {
 	installpkgs
-	[ -e "$BUILD_DIR" ] || mkdir -p $BUILD_DIR
-	local curpath="$PWD"
-	cd $BUILD_DIR
 	buildpkgs
-	cd "$curpath"
+	readypkgs
 }
 
 # remove packages using PMS
