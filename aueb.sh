@@ -56,11 +56,10 @@ APPS=(	[common]="netbeans scilab geany nmap tcsh wireshark"
 
 # }}}
 
-# FIXME crete arch-like vars for each package, each
-# FIXME parckege will be a function that resets the vars (url/pkgname/etc)
-# Applications that need to be built from source {{{
+# TODO crete arch-like vars for each package, the idea is that
+# each parckege will be a function that resets the vars (url/pkgname/etc)
+# Applications that need to be built from source ~ custom function-packages {{{
 
-# custom pkgbuilds
 function omnet() {
 	pkgname="omnetpp"
 	pkgver=4.1
@@ -104,46 +103,6 @@ function xampp() {
 	md5sum=('89c13779cf6f0925d5c1c400d31a1cc3')
 }
 
-# ALTERA LICENSE TO COPY INFORMATION {{{
-#
-#You are licensed to download and copy documentation, software, and other
-# materials from this website (including the myAltera and Self-Service 
-#Licensing Center portions of this website) provided you agree to the 
-#following terms and conditions:
-#
-#You may use the Materials for informational, non-commercial purposes only.
-#You may not alter or modify the Materials in any way.
-#You may not use any graphics separate from any accompanying text.
-#You may distribute copies of the documentation available at this website 
-#only to customers and potential customers of Altera® products. However, 
-#you may not charge them for such use. Any other distribution to third parties 
-#is prohibited unless you obtain the prior written consent of Altera.
-#You may use any software provided on this website provided that you agree 
-#to be bound by the terms and conditions of Altera's Program Subscription 
-#License Agreement or other applicable license agreement. Unless expressly 
-#permitted, you may not modify, reverse engineer, or disassemble any software.
-#You may not install any software that is accompanied by or includes a 
-#License Agreement unless you first have agreed to the License Agreement terms. 
-#If no end user License Agreement accompanies or is included with the software, 
-#then such software shall be deemed to be Materials hereunder and this Legal 
-#Notice shall govern your use of such software. FURTHER REPRODUCTION OR DISTRIBUTION 
-#OF ANY SOFTWARE IS EXPRESSLY PROHIBITED, UNLESS SUCH REPRODUCTION OR DISTRIBUTION 
-#IS EXPRESSLY PERMITTED BY THE LICENSE AGREEMENT ACCOMPANYING OR INCLUDED WITH SUCH SOFTWARE.
-#You may not use the Materials in any way that may be adverse to Altera´s interests.
-#You may not use this website (including, without limitation, any software, 
-#documentation, or other Materials you may obtain through your use of this website) 
-#(1) in a manner that violates any local, state, national, foreign or 
-#international statutes, regulations, rules, orders, treaties, or other laws, 
-#(2) to interfere with or disrupt the operation of the website or servers 
-#or networks connected to the website, or (3) attempt to gain unauthorized 
-#access to any portion of the website or any other accounts, computer systems, 
-#servers, or networks connected to the website, whether through hacking, 
-#password mining, or any other means.
-#All copies of materials that you download or copy from this website must 
-#include a copy of this Legal Notice.
-#
-#Failure to comply with these terms and conditions will terminate the license.
-# }}}
 function quartus() {
 	pkgname="quartus"
 	pkgver="10.0sp1"
@@ -152,17 +111,12 @@ function quartus() {
 	arch=('i686' 'x86_64')
 	url="https://www.altera.com/download/software/quartus-ii-we"
 	legalurl="http://www.altera.com/common/legal.html"
-	legalnotice="This is NOT FOSSoftware Please visit \
-	 $legalurl before proceeding.\
-	If you proceed it means that you understand and agree with the above legal notice"
+	legalnotice="This is NOT FOSSoftware Please visit $legalurl before \
+				proceeding. If you proceed it means that you understand\
+				and agree with the above legal notice"
 	source=(${FOSS_AUEB}sources/${pkgname}-linux-${pkgver}.sh)
 	md5sum=('eab8466927e83c38d2a449842d3f372d')
 }
-
-# ACCEPT THE AGREEMENT
-#NESSUS="http://www.nessus.org/download/index.php?product=nessus42-linux"
-# register to download Quartus
-#QUARTUS="https://www.altera.com/servlets/download3?swcode=WWW-SWD-QII-WE-100SP1-LNX&l=en"
 # }}}
 
 # Usage message {{{ 
@@ -211,7 +165,7 @@ function extract() {
 	fi
 }
 
-# empty build directory
+# clean build directory
 function cleanbuild() {
 	rm -r $BUILD_DIR/*
 }
@@ -222,7 +176,8 @@ function getarchivedfiles() {
 	extract "$pkgname"	
 }
 
-# get required files FIXME what is $1 , where is this used ?!
+# FIXME what is $1 , where is this used ?!
+# get required files
 function getfiles() {
 	getarchivedfiles 
 	mv "$pkgname" "$1" 
@@ -235,22 +190,24 @@ function buildpkgs() {
 	make && make install
 }
 
-# FIXME Build the packages from source
+# Build the packages from source
 function buildpkgs() {
 	[ -e "$BUILD_DIR" ] || mkdir -p "$BUILD_DIR"
 	local curpath="$PWD"
 	cd "$BUILD_DIR"
-	for app in ${APPS["build"]}
+	for pkgbuild_func in ${APPS["build"]}
 	do
-		$app # FIXME call the app-function :S
+		$pkgbuild_func
 		buildpkg
 		cleanbuild
 	done
 }
 
 # FIXME Install archived-ready packages
+# TODO extract package to $VENDORS_DIR and link executables
 function readypkgs() {
 	echo ${APPS["extra"]}
+	echo "not implemented yet"
 }
 
 # Install packages using PMS
@@ -272,6 +229,11 @@ function removepkgs() {
 	(( $? )) && echo Failure || echo Success
 }
 
+# FIXME remove packages installed from source
+function removebuildpkgs() {
+	echo "not implemented yet"
+}
+
 # main remove function
 function remove() { 
 	removepkgs
@@ -288,25 +250,9 @@ function apps() {
 }
 # }}}
 
-# FIXME is a network manager running? which one? how to stop/restart it? 
 # wifi management {{{
-# connect to wifi
-function connectwifi() {
-	wpa_wifi
-	/etc/{rc,init}.d/{networkmanager,wicd} stop &>/dev/null
-	ifconfig "$IFACE" down
-	ifconfig "$IFACE" up
-	wpa_supplicant -Dwext -i "$IFACE" -c "$WPACONF" 1>"$WPALOG" 2>"$WPAERR"
-}
-
-# disconnect from wifi
-function disconnectwifi() {
-	ifconfig "$IFACE" down
-	/etc/{rc,init}.d/{networkmanager,wicd} start &>/dev/null
-}
-
 # create wpa_supplicant configuration file
-function wpa_wifi() {
+function wifi_conf() {
 	[ -e "$WPACONF" ] && return
 	mkdir -p "$(dirname ${WPACONF})"
 	cat > "$WPACONF" << EOF
@@ -326,6 +272,38 @@ network={
 EOF
 }
 
+# try to close running network managers
+function handle_nm() {
+	[ "$1" == "start" ] && local action="start" || local action="stop"
+	# find the initscripts
+	[ -e "/etc/rc.d" ] && local RC_PATH="/etc/rc.d"
+	[ -e "/etc/init.d" ] && local RC_PATH="/etc/init.d"
+	[ -z "$RC_PATH" ] && echo "where are the init scripts stored ?" && return
+	# check for common network managers
+	[ -e "$RC_PATH/networkmanager" ] && "$RC_PATH/networkmanager" status
+	(( ! $? )) && "$RC_PATH/networkmanager" $action && return
+	[ -z "$RC_PATH/knetworkmanager" ] && "$RC_PATH/knetworkmanager" status
+	(( ! $? )) && "$RC_PATH/knetworkmanager" $action && return
+	[ -e "$RC_PATH/wicd" ] && "$RC_PATH/wicd" status
+	(( ! $? )) && "$RC_PATH/wicd" $action && return
+	echo "no active network managers found"
+}
+
+# connect to wifi
+function connectwifi() {
+	wifi_conf
+	handle_nm "stop"
+	ifconfig "$IFACE" down
+	ifconfig "$IFACE" up
+	wpa_supplicant -Dwext -i"$IFACE" -c"$WPACONF" 1>"$WPALOG" 2>"$WPAERR"
+}
+
+# disconnect from wifi
+function disconnectwifi() {
+	ifconfig "$IFACE" down
+	handle_nm "start"
+}
+
 # manage wifi connection
 function wifi() {
 	IFACE="$(iwconfig 2>&1 | grep -v "no\|^$" | head -1 | awk '{ print $1 }')"
@@ -339,6 +317,7 @@ function wifi() {
 # }}}  
 
 # Main run 
+(( "$(id -u)" )) && echo "You must have root priviledges to run this script" && exit 1
 [ -n "$3" ] && DISTRO="$3" || usage
 [ "$DISTRO" == "ubuntu" -o "$DISTRO" == "arch" ] || usage
 mkdir -p "$PREFIX"
