@@ -16,11 +16,10 @@
 # more to come
 # }}}
 
-# TODO
+# TODO profit!
 # check needed progs at each stage
 # build pkgs func
-# print status mesg and keep log
-# profit!
+# print status msgs and keep log
 
 # Environment vars {{{
 FOSS_AUEB="http://foss.aueb.gr/"	
@@ -58,20 +57,20 @@ APPS=(	[common]="netbeans scilab geany nmap tcsh wireshark"
 
 # TODO crete arch-like vars for each package, the idea is that
 # each parckege will be a function that resets the vars (url/pkgname/etc)
-# Applications that need to be built from source ~ custom function-packages {{{
+# applications that need to be built from source ~ custom function-packages {{{
 
 function omnet() {
 	pkgname="omnetpp"
 	pkgver=4.1
 	pkgrel=41
-	pkgdesc="OMNeT++ is an extensible, modular, component-based C++ simulation\
+	pkgdesc="OMNeT++ is an extensible, modular, component-based C++ simulation \
 	 library and framework, primarily for building network simulators."
 	arch=('i686' 'x86_64')
 	url="http://www.omnetpp.org/"
 	license=('ACADEMIC PUBLIC LICENSE')
 	groups=('none')
 	depends=('akaroa')
-	source=(${FOSS_AUEB}sources/${pkgname}-${pkgver}-src.tgz)
+	src=(${FOSS_AUEB}sources/${pkgname}-${pkgver}-src.tgz)
 	md5sums=('acc78fbc9f4b6ca921d11fabcec55c44')
 }
 
@@ -88,7 +87,7 @@ function spim() {
 	makedepends=('bison' 'flex' 'm4' 'imake')
 	conflicts=(xspim)
 	provides=(xspim)
-	source=(${FOSS_AUEB}sources/${pkgname}.tar.gz)
+	src=(${FOSS_AUEB}sources/${pkgname}.tar.gz)
 	md5sums=('146558e8256f2b7577fb825fdc76a04f')
 }
 
@@ -99,7 +98,7 @@ function xampp() {
 	pkgdesc="The Linux version of XAMPP"
 	arch=('i686' 'x86_64')
 	url="http://www.apachefriends.org/en/xampp-linux.html"
-	source=(${FOSS_AUEB}sources/${pkgname}-linux-${pkgver}.tar.gz)
+	src=(${FOSS_AUEB}sources/${pkgname}-linux-${pkgver}.tar.gz)
 	md5sum=('89c13779cf6f0925d5c1c400d31a1cc3')
 }
 
@@ -112,17 +111,18 @@ function quartus() {
 	url="https://www.altera.com/download/software/quartus-ii-we"
 	legalurl="http://www.altera.com/common/legal.html"
 	legalnotice="This is NOT FOSSoftware Please visit $legalurl before \
-				proceeding. If you proceed it means that you understand\
+				proceeding. If you proceed it means that you understand \
 				and agree with the above legal notice"
-	source=(${FOSS_AUEB}sources/${pkgname}-linux-${pkgver}.sh)
+	src=(${FOSS_AUEB}sources/${pkgname}-linux-${pkgver}.sh)
 	md5sum=('eab8466927e83c38d2a449842d3f372d')
 }
 # }}}
 
-# Usage message {{{ 
+# generic funcs {{{ 
+# usage message
 function usage() {
 cat << EOF
-usage: $(basename "$0") option suboption distro
+usage: "$(basename "$0")" option suboption [distro]
 
 	Options are:
 	apps [app_opts]			application management
@@ -136,14 +136,32 @@ usage: $(basename "$0") option suboption distro
 	connect				connect to wireless
 	disconnect			disconnect from wireless
 
-	distro				the linux distribution [supported:ubuntu,arch]
+	distro				the linux distribution
 EOF
 exit 1
 }
+
+# log given input
+function log() {
+	echo "$@" >> "$LOG"
+}
+
+# not provided the distro, try to figure it out
+# this is based on the LinuxStandardBase
+function guess_distro() {
+	[ -n "$3" ] && DISTRO="$3" && return
+	DISTRO="$(lsb_release -i | cut -d":" -f2- | \
+		awk '{ print $1 }' | tr [[:upper:]] [[:lower:]])"
+	[ -n "${PMSI["$DISTRO"]}" ] && return
+	DISTRO="$(lsb_release -d | cut -d":" -f2- | \
+		awk '{ print $1 }' | tr [[:upper:]] [[:lower:]])"
+	[ -n "${PMSI["$DISTRO"]}" ] && return
+	usage
+}
 # }}}
 
-# Applications management {{{
-# Extract an archive
+# applications management {{{
+# extract an archive
 function extract() {
 	if [ -f "$1" ] ; then
 		case "$1" in
@@ -316,11 +334,10 @@ function wifi() {
 }
 # }}}  
 
-# Main run 
 (( "$(id -u)" )) && echo "You must have root priviledges to run this script" && exit 1
-[ -n "$3" ] && DISTRO="$3" || usage
-[ "$DISTRO" == "ubuntu" -o "$DISTRO" == "arch" ] || usage
+guess_distro
 mkdir -p "$PREFIX"
+
 case "$1" in 
 	wifi) wifi "$2" ;;
 	apps) apps "$2" ;;

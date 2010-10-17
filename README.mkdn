@@ -1,5 +1,32 @@
-linux4aueb
-----------
-This script will be used to install the required software that we need for our university projects(A.U.E.B.) to a linux distro.
+aueb-utils
+==========
+This script can be used to set up everything related 
+to our university ([aueb](http://aueb.gr) [cs department](http://www.cs.aueb.gr))
 
-The installed software may not be free or opensource!
+Software
+--------
+Install the required software needed for our university projects to your linux distro.
+<code>$ aueb.sh apps install
+installing build-essentials ..
+installing java-jdk ..
+[..]
+software is ready to use</code>
+
+Networking
+----------
+Easily set up your wireless connection 
+<code>$ aueb.sh wifi connect
+connected to aueb-wireless </code>
+<code>$ aueb.sh wifi disconnect
+disconnected from aueb-wireless</code>
+
+Notice
+------
+* The script requires root priviledges
+* Supported distros are "ArchLinux" and "Ubuntu" for now
+* The installed software may not be free or opensource
+
+License
+-------
+The beer-ware license
+
