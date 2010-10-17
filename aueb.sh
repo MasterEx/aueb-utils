@@ -8,8 +8,7 @@
 # this stuff is worth it, you can buy us a beer in return!
 # ----------------------------------------------------------------------------
 #
-# This is a bash script managing all needed things 
-# for our university
+# This is a bash script managing all needed things for our university
 #
 # install / remove apps
 # connect / disconnect wifi
@@ -119,6 +118,13 @@ function quartus() {
 # }}}
 
 # generic funcs {{{ 
+# check for root priviledges
+function check_root() {
+	(( "$(id -u)" )) \
+	&& echo "You must have root priviledges to run this script" \
+	&& exit 1
+}
+
 # usage message
 function usage() {
 cat << EOF
@@ -148,14 +154,20 @@ function log() {
 
 # not provided the distro, try to figure it out
 # this is based on the LinuxStandardBase
-function guess_distro() {
-	[ -n "$3" ] && DISTRO="$3" && return
+function set_distro() {
+	if [ -n "$1" ]
+	then 
+		DISTRO="$1" 
+		[ -n "${PMSI["$DISTRO"]}" ] && set -- "${@:1:$#-1}" && return \
+		|| echo "unknown distribution: "$DISTRO"" && usage
+	fi
 	DISTRO="$(lsb_release -i | cut -d":" -f2- | \
 		awk '{ print $1 }' | tr [[:upper:]] [[:lower:]])"
 	[ -n "${PMSI["$DISTRO"]}" ] && return
 	DISTRO="$(lsb_release -d | cut -d":" -f2- | \
 		awk '{ print $1 }' | tr [[:upper:]] [[:lower:]])"
 	[ -n "${PMSI["$DISTRO"]}" ] && return
+	echo "Cannot determine distribution. Please provide it to the script."
 	usage
 }
 # }}}
@@ -261,14 +273,21 @@ function remove() {
 # manage application installation
 function apps() {
 	case "$1" in
-		install)	install	;;
-		remove)		remove	;;
-		*)			usage	;;
+		install)	check_root; install ;;
+		remove)		check_root; remove  ;;
+		*)			echo "unknown argument: "$1"" && usage ;;
 	esac
 }
 # }}}
 
 # wifi management {{{
+# find the interface
+function set_iface() {
+	[ -n "$IFACE" ] && return
+	IFACE="$(iwconfig 2>&1 | grep -v "no\|^$" | head -1 | awk '{ print $1 }')"
+	[ -z "$IFACE" ] && echo "No wireless interface found" && exit 1
+}
+
 # create wpa_supplicant configuration file
 function wifi_conf() {
 	[ -e "$WPACONF" ] && return
@@ -324,24 +343,22 @@ function disconnectwifi() {
 
 # manage wifi connection
 function wifi() {
-	IFACE="$(iwconfig 2>&1 | grep -v "no\|^$" | head -1 | awk '{ print $1 }')"
-	[ -z "$IFACE" ] && echo "No wireless interface found" && exit 1
 	case "$1" in
-		connect)	connectwifi		;;
-		disconnect)	disconnectwifii	;;
-		*)			usage			;;
+		connect)	check_root; set_iface; connectwifi ;;
+		disconnect)	check_root; set_iface; disconnectwifii ;;
+		*)			echo "unknown argument: "$1"" && usage ;;
 	esac
 }
 # }}}  
 
-(( "$(id -u)" )) && echo "You must have root priviledges to run this script" && exit 1
-guess_distro
+(( $# > 3 )) && echo "too many arguments" && usage
+set_distro $3
 mkdir -p "$PREFIX"
 
 case "$1" in 
-	wifi) wifi "$2" ;;
-	apps) apps "$2" ;;
-	*) usage
+	wifi)	shift; wifi "$@" ;;
+	apps)	shift; apps "$@" ;;
+	*)		echo "unknown argument: "$1"" && usage ;;
 esac
 
 # vim: set nonumber nospell foldmethod=marker:foldmarker={{{,}}}:foldlevel=0
