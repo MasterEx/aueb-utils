@@ -1,24 +1,24 @@
 aueb-utils
 ==========
 This script can be used to set up everything related 
-to our university ([aueb](http://aueb.gr) [cs department](http://www.cs.aueb.gr))
+to our university ([aueb](http://aueb.gr) - [cs department](http://www.cs.aueb.gr))
 
 Software
 --------
 Install the required software needed for our university projects to your linux distro.
-<code>$ aueb.sh apps install
-installing build-essentials ..
-installing java-jdk ..
-[..]
-software is ready to use</code>
+	$ aueb.sh apps install
+	installing build-essentials ..
+	installing java-jdk ..
+	[..]
+	software is ready to use
 
 Networking
 ----------
 Easily set up your wireless connection 
-<code>$ aueb.sh wifi connect
-connected to aueb-wireless </code>
-<code>$ aueb.sh wifi disconnect
-disconnected from aueb-wireless</code>
+	$ aueb.sh wifi connect
+	connected to aueb-wireless
+	$ aueb.sh wifi disconnect
+	disconnected from aueb-wireless
 
 Notice
 ------
