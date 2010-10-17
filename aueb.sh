@@ -93,7 +93,6 @@ function spim() {
 function xampp() {
 	pkgname="xampp"
 	pkgver="1.7.3a"
-	pkgrel="1.7.3a"
 	pkgdesc="The Linux version of XAMPP"
 	arch=('i686' 'x86_64')
 	url="http://www.apachefriends.org/en/xampp-linux.html"
@@ -104,7 +103,6 @@ function xampp() {
 function quartus() {
 	pkgname="quartus"
 	pkgver="10.0sp1"
-	pkgrel="10.0"
 	pkgdesc="Quartus II Web Edition Software Version 10.0 Service Pack 1 for Linux"
 	arch=('i686' 'x86_64')
 	url="https://www.altera.com/download/software/quartus-ii-we"
@@ -114,6 +112,36 @@ function quartus() {
 				and agree with the above legal notice"
 	src=(${FOSS_AUEB}sources/${pkgname}-linux-${pkgver}.sh)
 	md5sum=('eab8466927e83c38d2a449842d3f372d')
+}
+
+# FIXME maybe use only the generic build
+function nessus() {
+	pkgname="Nessus"
+	pkgver="4.2.2"
+	pkgdesc="Nessus, the network vulnerability scanner"
+	url="http://www.tenable.com/nessus/"
+	legalurl="http://www.nessus.org/download/index.php?product=nessus42-linux"
+	legalnotice="This is NOT FOSSoftware Please visit $legalurl before \
+				proceeding. If you proceed it means that you understand \
+				and agree with the above legal notice"
+	if [ "$(uname -m)" = 'i686' ]
+	then
+		arch=('i686')
+		case "$DISTRO" in
+			*buntu)	src=(http://downloads.nessus.org/nessus3dl.php?file=${pkgname}-${pkgver}-ubuntu910_i386.deb\&licence_accept=yes\&t=03f10f511cb59f4d076d2a2428b42ae8)
+					md5sum=('1f3164a58631fc6444c2e7d76dce8e33');;
+			arch)	src=(http://downloads.nessus.org/nessus3dl.php?file=${pkgname}-${pkgver}-linux-generic32.tar.gz\&licence_accept=yes\&t=03f10f511cb59f4d076d2a2428b42ae8)
+					md5sum=('fd976ebbc028e703ffc5969e43b31c79');;
+		esac
+	else
+		arch=('x86_64')
+		case "$DISTRO" in
+			*buntu)	src=(http://downloads.nessus.org/nessus3dl.php?file=${pkgname}-${pkgver}-ubuntu910_amd64.deb\&licence_accept=yes\&t=03f10f511cb59f4d076d2a2428b42ae8)
+					md5sum=('e3f8460665ec0fa9c4844ca98a0aecc8');;
+			arch)	src=(http://downloads.nessus.org/nessus3dl.php?file=${pkgname}-${pkgver}-linux-generic64.tar.gz\&licence_accept=yes\&t=03f10f511cb59f4d076d2a2428b42ae8)
+					md5sum=('8f197f47748cea442551f2907c153558');;
+		esac
+	fi
 }
 # }}}
 
