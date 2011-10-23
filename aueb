@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-end() {
+aueb() {
     cat << EOM
 -----------------------
-  The Foss Aueb Team
+    Foss Aueb Team
   http://foss.aueb.gr
 -----------------------
 EOM
@@ -11,12 +11,22 @@ EOM
 
 usage() {
     cat << EOM
-usage: aueb [option]
+usage: aueb option suboption
 
   options:
-    install     install packages
-    remove      remove packages
+    packages    install or remove packages
+      install     install packages
+      remove      remove packages
     wifi        toggle university wireless connection
+      up          connect to the wireless network
+      down        disconnect from the wireless network
+
+  notes:
+    a) if your wireless interface is not 'wlan0' then
+    set the IFACE variable to your interface name, eg;
+      IFACE="ath0" aueb wifi up
+    b) you may need to turn off any running network
+    managers to let wifi work.
 EOM
 }
 
@@ -55,7 +65,7 @@ choose_dist() {
                 break
                 ;;
             0)
-                end
+                aueb
                 exit 0
                 ;;
             *)
@@ -84,46 +94,61 @@ network={
 EOF
 }
 
-toggle_wifi() {
-    local iface
-    wpa_supplicant -Dwext -i"$iface" -c"$wificonf"
-}
-
-(( UID )) && printf "You must have root priviledges to run this script\n" && end && exit 1
-
-declare -A installer
-installer=( [ubuntu]="aptitude install"
-            [arch]="pacman -S"
-)
-declare -A uninstaller
-installer=( [ubuntu]="aptitude remove"
-            [arch]="pacman -Rs"
-)
-declare -A packages
-packages=( [common]="netbeans geany nmap scilab tcsh wireshark"
-           [ubuntu]="openjdk-6-jdk build-essential wireless-tools wpasupplicant"
-           [arch]="openjdk6 base-devel wireless_tools wpa_supplicant"
-)
-
-dist=
-netdir="/etc/wpa_supplicant"
-wificonf="$netdir/wpa_aueb.conf"
-mkdir -p "$netdir"
+(( UID )) && printf "You must have root priviledges to run this script\n" && aueb && exit 1
 
 case $1 in
-    install)
-        detect_dist || choose_dist
-        echo ${installer["$dist"]} ${packages["common"]} ${packages["$dist"]} || \
-            { printf "Failed to install packages. Check with your package manager."; end; exit 1; }
-        ;;
-    remove)
-        detect_dist || choose_dist
-        echo ${uninstaller["$dist"]} ${packages["common"]} ${packages["$dist"]} || \
-            { printf "Failed to uninstall packages. Check with your package manager."; end; exit 1; }
+    packages)
+        declare -A installer
+        installer=( [ubuntu]="aptitude install"
+                    [arch]="pacman -S"
+        )
+        declare -A uninstaller
+        installer=( [ubuntu]="aptitude remove"
+                    [arch]="pacman -Rs"
+        )
+        declare -A packages
+        packages=( [common]="netbeans geany nmap scilab tcsh wireshark"
+                   [ubuntu]="openjdk-6-jdk build-essential wireless-tools wpasupplicant"
+                   [arch]="openjdk6 base-devel wireless_tools wpa_supplicant"
+        )
+        dist=
+
+        case $2 in
+            install)
+                detect_dist || choose_dist
+                echo ${installer["$dist"]} ${packages["common"]} ${packages["$dist"]} || \
+                    { printf "Failed to install packages. Check with your package manager."; aueb; exit 1; }
+                ;;
+            remove)
+                detect_dist || choose_dist
+                echo ${uninstaller["$dist"]} ${packages["common"]} ${packages["$dist"]} || \
+                    { printf "Failed to uninstall packages. Check with your package manager."; aueb; exit 1; }
+                ;;
+            *)
+                printf "Unknown option: %s\n" "$2"
+                exit 1
+                ;;
+        esac
         ;;
     wifi)
-        create_profile
-        toggle_wifi
+        netdir="/etc/wpa_supplicant"
+        wificonf="$netdir/wpa_aueb.conf"
+        mkdir -p "$netdir"
+        IFACE="${IFACE:-wlan0}"
+
+        case $2 in
+            up)
+                create_profile
+                echo wpa_supplicant -Dwext -i"$IFACE" -c"$wificonf"
+                ;;
+            down)
+                echo ifconfig "$IFACE" down
+                ;;
+            *)
+                printf "Unknown option: %s\n" "$2"
+                exit 1
+                ;;
+        esac
         ;;
     help)
         usage
@@ -139,9 +164,7 @@ esac
 # -- install/remove --
 # custom packages for: omnet spim xampp quartus nessus
 # -- wifi_toggle --
-# detect wifi interface <- ifdata?
 # follow output and react <- tailf?
-# already connected? <- turn off [toggle]
-# bring down other interfaces?
-# bring down other NMs?
+# -- glob --
+# remove 'echo' to run the real commands
 
