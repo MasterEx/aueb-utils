@@ -1,0 +1,147 @@
+#!/usr/bin/env bash
+
+end() {
+    cat << EOM
+-----------------------
+  The Foss Aueb Team
+  http://foss.aueb.gr
+-----------------------
+EOM
+}
+
+usage() {
+    cat << EOM
+usage: aueb [option]
+
+  options:
+    install     install packages
+    remove      remove packages
+    wifi        toggle university wireless connection
+EOM
+}
+
+detect_dist() {
+    printf "Detecting distribution ..\n"
+    dist="$(head -1 -q /etc/*release | sed 's/.*"\(.\+\)".*/\1/' \
+        | tr [[:upper:]] [[:lower:]])"
+    confirm_dist $dist && return 0
+
+    type lsb_release &>/dev/null && dist="$(lsb_release -i \
+        | awk -F':\t' '{ print $2 }' | tr [[:upper:]] [[:lower:]])"
+    confirm_dist $dist && return 0 \
+        || printf "\nCouldn't detect distribution\n" && return 1
+}
+
+confirm_dist() {
+    local answer
+    printf "Is this your distribution: %s (Y/n)? " "$1" && read answer
+    [[ -z $answer || $answer =~ ^[yY]$ ]] && return 0 || return 1
+}
+
+choose_dist() {
+    printf "\nPlease choose your distribution, from the list below:\n"
+    printf "\t%s\n" "1. Ubuntu" "2. Arch" "0. exit"
+
+    local choice
+    while true; do
+        read -p "Your distribution: " choice
+        case $choice in
+            1)
+                dist="ubuntu"
+                break
+                ;;
+            2)
+                dist="arch"
+                break
+                ;;
+            0)
+                end
+                exit 0
+                ;;
+            *)
+                printf "Unknown choice: %s. Please try again.\n" "$choice"
+                ;;
+        esac
+    done
+}
+
+create_profile() {
+    [[ -e $wificonf ]] && return
+    cat > "$wificonf" << EOF
+ctrl_interface=${PREFIX}/wpa_aueb
+eapol_version=1
+ap_scan=1
+fast_reauth=1
+network={
+    ssid="AUEB-Wireless"
+    key_mgmt=WPA-EAP
+    pairwise=CCMP TKIP
+    eap=PEAP
+    phase2="auth=MSCHAPV2"
+    identity="aueb"
+    password="wireless"
+}
+EOF
+}
+
+toggle_wifi() {
+    local iface
+    wpa_supplicant -Dwext -i"$iface" -c"$wificonf"
+}
+
+(( UID )) && printf "You must have root priviledges to run this script\n" && end && exit 1
+
+declare -A installer
+installer=( [ubuntu]="aptitude install"
+            [arch]="pacman -S"
+)
+declare -A uninstaller
+installer=( [ubuntu]="aptitude remove"
+            [arch]="pacman -Rs"
+)
+declare -A packages
+packages=( [common]="netbeans geany nmap scilab tcsh wireshark"
+           [ubuntu]="openjdk-6-jdk build-essential wireless-tools wpasupplicant"
+           [arch]="openjdk6 base-devel wireless_tools wpa_supplicant"
+)
+
+dist=
+netdir="/etc/wpa_supplicant"
+wificonf="$netdir/wpa_aueb.conf"
+mkdir -p "$netdir"
+
+case $1 in
+    install)
+        detect_dist || choose_dist
+        echo ${installer["$dist"]} ${packages["common"]} ${packages["$dist"]} || \
+            { printf "Failed to install packages. Check with your package manager."; end; exit 1; }
+        ;;
+    remove)
+        detect_dist || choose_dist
+        echo ${uninstaller["$dist"]} ${packages["common"]} ${packages["$dist"]} || \
+            { printf "Failed to uninstall packages. Check with your package manager."; end; exit 1; }
+        ;;
+    wifi)
+        create_profile
+        toggle_wifi
+        ;;
+    help)
+        usage
+        exit 0
+        ;;
+    *)
+        printf "Unknown option: %s\n" "$1"
+        exit 1
+        ;;
+esac
+
+# TODO:
+# -- install/remove --
+# custom packages for: omnet spim xampp quartus nessus
+# -- wifi_toggle --
+# detect wifi interface <- ifdata?
+# follow output and react <- tailf?
+# already connected? <- turn off [toggle]
+# bring down other interfaces?
+# bring down other NMs?
+
