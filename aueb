@@ -31,7 +31,7 @@ EOM
 }
 
 detect_dist() {
-    printf "Detecting distribution ..\n"
+    printf " ** %s\n" "Detecting distribution .."
     dist="$(head -1 -q /etc/*release | sed 's/.*"\(.\+\)".*/\1/' \
         | tr [[:upper:]] [[:lower:]])"
     confirm_dist $dist && return 0
@@ -39,7 +39,7 @@ detect_dist() {
     type lsb_release &>/dev/null && dist="$(lsb_release -i \
         | awk -F':\t' '{ print $2 }' | tr [[:upper:]] [[:lower:]])"
     confirm_dist $dist && return 0 \
-        || printf "\nCouldn't detect distribution\n" && return 1
+        || printf "\n ** %s\n" "Couldn't detect distribution" && return 1
 }
 
 confirm_dist() {
@@ -69,7 +69,7 @@ choose_dist() {
                 exit 0
                 ;;
             *)
-                printf "Unknown choice: %s. Please try again.\n" "$choice"
+                printf " --> Unknown choice: %s. Please try again.\n" "$choice"
                 ;;
         esac
     done
@@ -94,7 +94,7 @@ network={
 EOF
 }
 
-(( UID )) && printf "You must have root priviledges to run this script\n" && aueb && exit 1
+(( UID )) && printf " --> %s\n" "You must have root priviledges to run this script" && aueb && exit 1
 
 case $1 in
     packages)
@@ -116,16 +116,18 @@ case $1 in
         case $2 in
             install)
                 detect_dist || choose_dist
-                echo ${installer["$dist"]} ${packages["common"]} ${packages["$dist"]} || \
-                    { printf "Failed to install packages. Check with your package manager."; aueb; exit 1; }
+                printf " ** Running: %s\n" "${installer["$dist"]} ${packages["common"]} ${packages["$dist"]}" \
+                    && { printf " ==> %s\n" "Software ready to use"; aueb; exit 0; }   \
+                    || { printf " --> %s\n" "Failed to install packages. Check with your package manager."; aueb; exit 1; }
                 ;;
             remove)
                 detect_dist || choose_dist
-                echo ${uninstaller["$dist"]} ${packages["common"]} ${packages["$dist"]} || \
-                    { printf "Failed to uninstall packages. Check with your package manager."; aueb; exit 1; }
+                printf " ** Running: %s\n" "${uninstaller["$dist"]} ${packages["common"]} ${packages["$dist"]}" \
+                    && { printf " ==> %s\n" "Software removed"; aueb; exit 0; }          \
+                    || { printf " --> %s\n" "Failed to uninstall packages. Check with your package manager."; aueb; exit 1; }
                 ;;
             *)
-                printf "Unknown option: %s\n" "$2"
+                printf " --> Unknown option: %s\n" "$2"
                 exit 1
                 ;;
         esac
@@ -139,13 +141,16 @@ case $1 in
         case $2 in
             up)
                 create_profile
-                echo wpa_supplicant -Dwext -i"$IFACE" -c"$wificonf"
+                printf " ** Running: %s\n" "wpa_supplicant -Dwext -i${IFACE} -c${wificonf}"       \
+                && printf " ==> %s\n" "Connected to aueb wireless network" \
+                || printf " --> %s\n" "Couldn't connect to wireless network"
                 ;;
             down)
-                echo ifconfig "$IFACE" down
+                printf " ** Running: %s\n" "ifconfig ${IFACE} down"
+                printf " ==> %s\n" "Disconnected wireless connection"
                 ;;
             *)
-                printf "Unknown option: %s\n" "$2"
+                printf " --> Unknown option: %s\n" "$2"
                 exit 1
                 ;;
         esac
@@ -155,7 +160,7 @@ case $1 in
         exit 0
         ;;
     *)
-        printf "Unknown option: %s\n" "$1"
+        printf " --> Unknown option: %s\n" "$1"
         exit 1
         ;;
 esac
@@ -165,6 +170,4 @@ esac
 # custom packages for: omnet spim xampp quartus nessus
 # -- wifi_toggle --
 # follow output and react <- tailf?
-# -- glob --
-# remove 'echo' to run the real commands
 
